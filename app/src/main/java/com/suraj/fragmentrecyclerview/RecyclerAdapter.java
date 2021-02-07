@@ -7,12 +7,14 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.suraj.fragmentrecyclerview.databinding.ButtonTypeBinding;
 import com.suraj.fragmentrecyclerview.databinding.ImageTypeBinding;
 import com.suraj.fragmentrecyclerview.databinding.ViewPagerTypeBinding;
+import com.suraj.fragmentrecyclerview.databinding.ViewPagerTypeFragmentsBinding;
 
 import java.util.ArrayList;
 
@@ -20,6 +22,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     Context context;
     private ArrayList<Data> dataSet;
+    FragmentManager fragmentManager;
 
     public RecyclerAdapter(ArrayList<Data> data, Context context) {
         this.dataSet = data;
@@ -56,14 +59,24 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
     }
 
+    public static class ViewPagerFragTypeViewHolder extends RecyclerView.ViewHolder {
+
+        ViewPagerTypeFragmentsBinding viewPagerTypeFragmentsBinding;
+
+        public ViewPagerFragTypeViewHolder(@NonNull ViewPagerTypeFragmentsBinding viewPagerTypeFragmentsBinding) {
+            super(viewPagerTypeFragmentsBinding.getRoot());
+            this.viewPagerTypeFragmentsBinding = viewPagerTypeFragmentsBinding;
+        }
+    }
+
 
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         switch (viewType){
             case Data.VIEW_PAGER:
-                ViewPagerTypeBinding viewPagerTypeBinding = ViewPagerTypeBinding.inflate(LayoutInflater.from(parent.getContext()),parent,false);
-                return new ViewPagerTypeViewHolder(viewPagerTypeBinding);
+                ViewPagerTypeFragmentsBinding viewPagerTypeFragmentsBinding = ViewPagerTypeFragmentsBinding.inflate(LayoutInflater.from(parent.getContext()),parent,false);
+                return new ViewPagerFragTypeViewHolder(viewPagerTypeFragmentsBinding);
 
             case Data.IMAGE_TYPE:
                 ImageTypeBinding imageTypeBinding = ImageTypeBinding.inflate(LayoutInflater.from(parent.getContext()),parent,false);
@@ -72,6 +85,10 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             case Data.AUDIO_TYPE:
                 ButtonTypeBinding buttonTypeBinding = ButtonTypeBinding.inflate(LayoutInflater.from(parent.getContext()),parent,false);
                 return new ButtonTypeViewHolder(buttonTypeBinding);
+
+            case Data.SLIDER_TYPE:
+                ViewPagerTypeBinding viewPagerTypeBinding = ViewPagerTypeBinding.inflate(LayoutInflater.from(parent.getContext()),parent,false);
+                return new ViewPagerTypeViewHolder(viewPagerTypeBinding);
 
         }
         return null;
@@ -83,7 +100,11 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         if (object != null){
             switch (object.type){
                 case Data.VIEW_PAGER:
-                    ((ViewPagerTypeViewHolder) holder).viewPagerTypeBinding.type.setText(object.text);
+                    ((ViewPagerFragTypeViewHolder) holder).viewPagerTypeFragmentsBinding.type.setText(object.text);
+                    ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(((FragmentActivity)context).getSupportFragmentManager());
+                    viewPagerAdapter.add(new FirstFragment(), "Page 1");
+                    viewPagerAdapter.add(new SecondFragment(), "Page 2");
+                    ((ViewPagerFragTypeViewHolder) holder).viewPagerTypeFragmentsBinding.vpSlider.setAdapter(viewPagerAdapter);
                     break;
                 case Data.IMAGE_TYPE:
                     ((ImageTypeViewHolder) holder).imageTypeBinding.type.setText(object.text);
@@ -91,12 +112,11 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     break;
                 case Data.AUDIO_TYPE:
                     ((ButtonTypeViewHolder) holder).buttonTypeBinding.type.setText(object.text);
-                    ((ButtonTypeViewHolder) holder).buttonTypeBinding.btn.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            Toast.makeText(context, "You clicked!!!", Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                    ((ButtonTypeViewHolder) holder).buttonTypeBinding.btn.setOnClickListener(view -> Toast.makeText(context, "You clicked!!!", Toast.LENGTH_SHORT).show());
+                    break;
+                case Data.SLIDER_TYPE:
+                    ((ViewPagerTypeViewHolder) holder).viewPagerTypeBinding.type.setText(object.text);
+
                     break;
             }
         }
@@ -117,6 +137,8 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 return Data.IMAGE_TYPE;
             case 2:
                 return Data.AUDIO_TYPE;
+            case 3:
+                return Data.SLIDER_TYPE;
             default:
                 return -1;
         }
